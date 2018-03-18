@@ -1,0 +1,11 @@
+<component name="ArtifactManager">
+  <artifact type="jar" build-on-make="true" name="DDBike">
+    <output-path>$PROJECT_DIR$/out</output-path>
+    <root id="archive" name="DDBike.jar">
+      <element id="module-output" name="DDBike" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/netty-all-4.1.4.Final.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/log4j-1.2.16.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/sqlite-jdbc-3.19.3.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>

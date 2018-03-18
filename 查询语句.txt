@@ -1,0 +1,37 @@
+
+
+
+// 查询数据的方法
+// 如下图所示
+//
+
+// 这是所有设备的分别的三种数据
+
+SELECT * from bdATA where datastr likE '%ping%'; // 查找ping
+SELECT * from bdATA where datastr likE '%login%'; // 查找login
+SELECT * from bdATA where datastr likE '%post%'; // 查找post
+
+// 这是所有设备在1点钟生成的数据
+
+SELECT * from bdATA where time likE '%2017-07-27 01%'; // 按时间查找
+
+// 这是所有设备在2017-07-27生成的数据
+
+SELECT * from bdATA where time likE '%2017-07-27 01%'; // 按时间查找
+
+// 查找设备号 BS80001 所有数据
+SELECT * from bdATA where datastr likE '%BS80001%'; // 按设备号查询
+
+// 查询设备号 BS80001 login 数据
+SELECT * from bdATA where datastr likE '%login|BS80001%';
+
+
+// 数据库首次需要手动创建表
+// 数据库结构
+CREATE TABLE IF NOT EXISTS BDATA (
+ID integer PRIMARY KEY AUTOINCREMENT,
+type int NOT NULL,
+datastr text NOT NULL,
+time text NOT NULL
+);
+
