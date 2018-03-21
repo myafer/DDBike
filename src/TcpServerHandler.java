@@ -55,19 +55,21 @@ public class TcpServerHandler
             TcpServer.getMap().put(bytesToHexString(msg), ctx.channel());
             ctx.writeAndFlush(msg);
         } else  {
-            byte[] iemi = new byte[17];
+            byte[] imei = new byte[17];
             byte[] co = new byte[msg.length - 17];
-            for (int j = 0; j < iemi.length; j++) {
-                iemi[j] = msg[j];
+            for (int j = 0; j < imei.length; j++) {
+                imei[j] = msg[j];
             }
-            for (int i = iemi.length; i < msg.length; i++) {
-                co[i - iemi.length] = msg[i];
+            for (int i = imei.length; i < msg.length; i++) {
+                co[i - imei.length] = msg[i];
             }
-            logger.info("获取长连接" + bytesToHexString(iemi));
+            logger.info("获取长连接" + bytesToHexString(imei));
             try {
-                TcpServer.getMap().get(bytesToHexString(iemi)).writeAndFlush(co);
+                logger.info("获取长连接");
+                TcpServer.getMap().get(bytesToHexString(imei)).writeAndFlush(co);
             } catch (Exception e) {
-                ctx.writeAndFlush(hexStringToBytes("00 00"));
+                logger.info("失败了");
+                ctx.writeAndFlush(msg);
             }
         }
     }

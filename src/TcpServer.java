@@ -20,8 +20,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class TcpServer
 {
     private static final Logger logger = Logger.getLogger(TcpServer.class);
-    private static final String IP = "172.24.119.202";
-//    private static final String IP = "127.0.0.1";
+//    private static final String IP = "172.24.119.202";
+    private static final String IP = "127.0.0.1";
     private static final int PORT = 8806;
     protected static final int BIZGROUPSIZE = Runtime.getRuntime().availableProcessors() * 2;
     protected static final int BIZTHREADSIZE = 100;
