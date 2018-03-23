@@ -16,12 +16,15 @@ public class TcpServerHandler
 {
     private static final Logger logger = Logger.getLogger(TcpServerHandler.class);
 
-    enum DataType {
-        NONE,
-        PING,
-        LOGIN,
-        POST,
-    }
+    int imei_length = 18;
+
+    int light =     0x01; // 灯光控制电源开关
+    int door =      0x06; // 门禁控制电源开关
+    int air =       0x07; // 空气净化器控制电源开关
+    int body =      0x08; // 体质检测仪控制电源开关
+    int kongtiao =  0x09; // 空调控制电源开关
+
+
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
@@ -36,20 +39,27 @@ public class TcpServerHandler
     }
 
     @Override
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        super.channelRead(ctx, msg);
+        System.out.println("收到服务器数据---------");
+        System.out.println(msg);
+        ctx.writeAndFlush(msg);
+    }
+
+    @Override
     protected void channelRead0(ChannelHandlerContext ctx, byte[] msg) throws Exception {
 
-//        TcpServer.getMap().put(String.valueOf(msg), ctx.channel());
         logger.info(bytesToHexString(msg));
-
         for (int i = 0; i < msg.length; i++ ) {
             System.out.print(msg[i]);
             System.out.print(" ");
         }
-        System.out.print("--------");
+        System.out.print("xxxxxxxxxx");
         logger.info(msg[0]);
         logger.info(msg[0] == 0x5a);
         logger.info(msg[msg.length-1]);
         logger.info(msg[msg.length-1] == 0xa5);
+        // 心跳
         if (msg[0] == 90 && msg[msg.length-1] == -91) {
             logger.info("进入了。。。。。");
             TcpServer.getMap().put(bytesToHexString(msg), ctx.channel());
@@ -154,17 +164,17 @@ public class TcpServerHandler
      ctx.close();
   }
 
-  public static DataType getType(String source) {
-      if (source.contains("ping")) {
-          return DataType.PING;
-      } else if (source.contains("login")) {
-          return DataType.LOGIN;
-      } else if (source.contains("post")) {
-          return DataType.POST;
-      } else {
-          return DataType.NONE;
-      }
-  }
+//  public static DataType getType(String source) {
+//      if (source.contains("ping")) {
+//          return DataType.PING;
+//      } else if (source.contains("login")) {
+//          return DataType.LOGIN;
+//      } else if (source.contains("post")) {
+//          return DataType.POST;
+//      } else {
+//          return DataType.NONE;
+//      }
+//  }
 
   public static boolean trimFirstAndLastChar(String source)
   {
