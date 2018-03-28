@@ -1,22 +1,10 @@
 
 import io.netty.channel.*;
-
-import java.io.PrintStream;
-
-import jdk.nashorn.internal.objects.Global;
-import jdk.nashorn.internal.parser.JSONParser;
-import jdk.nashorn.internal.runtime.Context;
-import jdk.nashorn.internal.runtime.ScriptObject;
 import net.sf.json.JSONObject;
 import org.apache.log4j.Logger;
-import sun.plugin.javascript.navig.JSType;
+import sun.jvm.hotspot.runtime.Bytes;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.ArrayList;
 
 
 public class TcpServerHandler
@@ -26,11 +14,23 @@ public class TcpServerHandler
 
     int imei_length = 18;
 
-    int light =     0x01; // 灯光控制电源开关
-    int door =      0x06; // 门禁控制电源开关
-    int air =       0x07; // 空气净化器控制电源开关
-    int body =      0x08; // 体质检测仪控制电源开关
-    int kongtiao =  0x09; // 空调控制电源开关
+    int light =                 0x01; // 灯光控制电源开关
+    int door =                  0x06; // 门禁控制电源开关
+    int airCleanMachine =       0x07; // 空气净化器控制电源开关
+    int bodyTester =            0x08; // 体质检测仪控制电源开关
+    int airConditioner =        0x09; // 空调控制电源开关
+
+    int switch_on = 0xff;
+    int switch_off = 0x00;
+
+    // 1 打开门 打开灯光  2 打开体质检测器 打开空调 打开空气净化器 开始计费 3 关闭体质检测器 关闭空调 关闭空气净化器 结束计费
+
+
+    public byte[] openDevice(int device, int on) {
+        byte[] by = {(byte)device, (byte)0x0f, (byte)0x00, (byte)0x00, (byte)on, (byte)0x00};
+        byte[] crc16 = CRC16M.getSendBuf(CRC16M.getBufHexStr(by));
+        return crc16;
+    }
 
     // 控制硬件编码
 
@@ -65,21 +65,55 @@ public class TcpServerHandler
         super.channelRead(ctx, msg);
 
         JSONObject json = JSONObject.fromObject(msg.toString());
-        // 1 单个开关控制  2全部开关控制
+        // 1 打开门 打开灯光  2 打开体质检测器 打开空调 打开空气净化器 开始计费 3 关闭体质检测器 关闭空调 关闭空气净化器 结束计费
         String type = json.get("type").toString();
         // imei 号
         String imei = json.get("imei").toString();
-        // 单个开关地址 1 灯光控制电源开关 2 门禁控制电源开关 3  空气净化器控制电源开关 4  体质检测仪控制电源开关 5  空调控制电源开关      全部开关默认为0
-        String switch_num = json.get("switch_num").toString();
-        // 是否开启 1 开 0 关
-        String on = json.get("on").toString();
 
         // 保存长连接到map
         TcpServer.getServermap().put(imei, ctx.channel());
         logger.info(TcpServer.getServermap());
         Channel ch = TcpServer.getMap().get(imei);
         if (ch != null && ch.isActive()) {
-            ch.writeAndFlush(hexStringToBytes("FE 0F 00 00 00 04 01 FF 31 D2"));
+
+            if (type.equals("1")) {
+                // 开灯
+                byte[] co = openDevice(light, switch_on);
+                ch.writeAndFlush(co);
+
+                // 开门
+                byte[] co1 = openDevice(door, switch_on);
+                ch.writeAndFlush(co1);
+            } else if (type.equals("2")) {
+                // 开空气净化器
+                byte[] co = openDevice(airCleanMachine, switch_on);
+                ch.writeAndFlush(co);
+
+                // 开体质检测器
+                byte[] co1 = openDevice(bodyTester, switch_on);
+                ch.writeAndFlush(co1);
+                // 开空调
+                byte[] co2 = openDevice(airConditioner, switch_on);
+                ch.writeAndFlush(co2);
+            } else if (type.equals("3")) {
+                // 关闭命令
+
+                // 关闭气净化器
+                byte[] coo = openDevice(airCleanMachine, switch_off);
+                ch.writeAndFlush(coo);
+                // 关闭质检测器
+                byte[] co1 = openDevice(bodyTester, switch_off);
+                ch.writeAndFlush(co1);
+
+                // 关闭空调
+                byte[] co2 = openDevice(airConditioner, switch_off);
+
+                ch.writeAndFlush(co2);
+            } else {
+
+            }
+
+
         } else {
             logger.info("没有找到相应的线程或者设备失活。。。应该是设备不在线。。设备号：" + imei);
             ctx.channel().writeAndFlush("{\"status\": \"0\", \"message\": \"机器不在线，请联系客服人员。\"}");
@@ -102,24 +136,27 @@ public class TcpServerHandler
             TcpServer.getMap().put(bytesToHexString(msg), ctx.channel());
             // 返回心跳数据
             ctx.writeAndFlush(msg);
-        } else  {
-            byte[] imei = new byte[17];
-            byte[] co = new byte[msg.length - 17];
-            for (int j = 0; j < imei.length; j++) {
-                imei[j] = msg[j];
-            }
-            for (int i = imei.length; i < msg.length; i++) {
-                co[i - imei.length] = msg[i];
-            }
-            logger.info("获取长连接" + bytesToHexString(imei));
-            try {
-                logger.info("获取长连接");
-                TcpServer.getMap().get(bytesToHexString(imei)).writeAndFlush(co);
-            } catch (Exception e) {
-                logger.info("失败了");
+        } else  {  // 返回包
+
+            if (msg.length > 17) {
+                byte[] imei = new byte[17];
+                byte[] co = new byte[msg.length - 17];
+                for (int j = 0; j < imei.length; j++) {
+                    imei[j] = msg[j];
+                }
+                for (int i = imei.length; i < msg.length; i++) {
+                    co[i - imei.length] = msg[i];
+                }
+                logger.info("获取长连接" + bytesToHexString(imei));
+
+                // 返回结果通知服务器
+                TcpServer.getServermap().get("5a" + bytesToHexString(imei) + "a5").writeAndFlush("{\"status\": \"0\", \"message\": \"成功！\"}");
+
+                // 通知硬件接收成功
                 ctx.writeAndFlush(msg);
             }
         }
+
     }
 
     //    protected void channelRead0(ChannelHandlerContext ctx, Object msg)
