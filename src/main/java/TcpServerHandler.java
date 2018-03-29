@@ -47,15 +47,15 @@ public class TcpServerHandler
         }
 
         String switchResult = "";
-        if (data[4] == switch_on) {
+        if ((int)(data[4] & 0xFF) == switch_on ) {
             switchResult = "1";
         } else  {
             switchResult = "0";
         }
 
         return "{" +
-                "\"imei\":\"" + imei + "\"" +
-                "\"device\":\"" + device + "\"" +
+                "\"imei\":\"" + bytesToHexString(imei) + "\";" +
+                "\"device\":\"" + device + "\";" +
                 "\"switch_on\":\"" + switchResult + "\"" +
                 "}";
     }
@@ -103,12 +103,13 @@ public class TcpServerHandler
     }
 
 
+
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        super.channelRead(ctx, msg);
+    protected void channelRead0(ChannelHandlerContext ctx, byte[] msg) throws Exception {
         logger.info("88888888" + msg);
-        if (isJson(msg.toString())) {
-            JSONObject json = JSONObject.fromObject(msg.toString());
+        String msgs = new String(msg,"UTF-8");
+        if (isJson(msgs)) {
+            JSONObject json = JSONObject.fromObject(msgs);
             // 1 打开门 打开灯光  2 打开体质检测器 打开空调 打开空气净化器 开始计费 3 关闭体质检测器 关闭空调 关闭空气净化器 结束计费
             String type = json.get("type").toString();
             // imei 号
@@ -118,41 +119,60 @@ public class TcpServerHandler
             // 保存长连接到map
             TcpServer.getServermap().put(imei, ctx.channel());
             logger.info(TcpServer.getServermap());
+            logger.info(TcpServer.getMap());
+            logger.info("imei " + imei);
             Channel ch = TcpServer.getMap().get(imei);
+            logger.info(ch);
             if (ch != null && ch.isActive()) {
+                logger.info("xxxxxxxxxxxxx");
                 if (type.equals("1")) {
+                    logger.info("开灯！！！");
                     // 开灯
                     byte[] co = openDevice(light, switch_on);
                     ch.writeAndFlush(co);
+                    try {
+                        Thread.sleep(100);
+                        // 开门
+                        byte[] co1 = openDevice(door, switch_on);
+                        ch.writeAndFlush(co1);
+                    } catch (InterruptedException e) { }
 
-                    // 开门
-                    byte[] co1 = openDevice(door, switch_on);
-                    ch.writeAndFlush(co1);
+
                 } else if (type.equals("2")) {
                     // 开空气净化器
                     byte[] co = openDevice(airCleanMachine, switch_on);
                     ch.writeAndFlush(co);
-
-                    // 开体质检测器
-                    byte[] co1 = openDevice(bodyTester, switch_on);
-                    ch.writeAndFlush(co1);
-                    // 开空调
-                    byte[] co2 = openDevice(airConditioner, switch_on);
-                    ch.writeAndFlush(co2);
+                    try {
+                        Thread.sleep(100);
+                        // 开体质检测器
+                        byte[] co1 = openDevice(bodyTester, switch_on);
+                        ch.writeAndFlush(co1);
+                    } catch (InterruptedException e) { }
+                    try {
+                        Thread.sleep(200);
+                        // 开空调
+                        byte[] co2 = openDevice(airConditioner, switch_on);
+                        ch.writeAndFlush(co2);
+                    } catch (InterruptedException e) { }
                 } else if (type.equals("3")) {
                     // 关闭命令
 
                     // 关闭气净化器
                     byte[] co = openDevice(airCleanMachine, switch_off);
                     ch.writeAndFlush(co);
-                    // 关闭质检测器
-                    byte[] co1 = openDevice(bodyTester, switch_off);
-                    ch.writeAndFlush(co1);
+                    try {
+                        Thread.sleep(100);
+                        // 关闭质检测器
+                        byte[] co1 = openDevice(bodyTester, switch_off);
+                        ch.writeAndFlush(co1);
+                    } catch (InterruptedException e) { }
 
-                    // 关闭空调
-                    byte[] co2 = openDevice(airConditioner, switch_off);
-
-                    ch.writeAndFlush(co2);
+                    try {
+                        Thread.sleep(200);
+                        // 关闭空调
+                        byte[] co2 = openDevice(airConditioner, switch_off);
+                        ch.writeAndFlush(co2);
+                    } catch (InterruptedException e) { }
                 } else {
 
                 }
@@ -160,22 +180,21 @@ public class TcpServerHandler
                 logger.info("没有找到相应的线程或者设备失活。。。应该是设备不在线。。设备号：" + imei);
                 ctx.channel().writeAndFlush("{\"status\": \"0\", \"message\": \"机器不在线，请联系客服人员。\"}");
                 ctx.channel().close();
-
             }
         } else  {
-            byte[] bmsg = strToByteArray(msg.toString());
-            logger.info(bytesToHexString(bmsg));
+            byte[] bmsg = msg;
             for (int i = 0; i < bmsg.length; i++ ) {
                 System.out.print(bmsg[i]);
                 System.out.print(" ");
             }
             // 心跳
-            if (bmsg[0] == 90 && bmsg[bmsg.length-1] == 63) {
+            if (bmsg[0] == 90 && bmsg[bmsg.length-1] == -91) {
                 logger.info("心跳数据进入。。。");
                 // 根据心跳保存长连接
                 TcpServer.getMap().put(bytesToHexString(bmsg), ctx.channel());
+                logger.info(TcpServer.getMap());
                 // 返回心跳数据
-                ctx.writeAndFlush(bmsg);
+//                ctx.writeAndFlush(bmsg);
             } else  {  // 返回包
 
                 if (bmsg.length > 17) {
@@ -188,11 +207,13 @@ public class TcpServerHandler
                         co[i - imei.length] = bmsg[i];
                     }
                     logger.info("获取长连接" + bytesToHexString(imei));
-
+                    logger.info(TcpServer.getServermap());
                     String result = controlDecode(imei, co);
-                    Channel serverCh = TcpServer.getServermap().get("5a" + bytesToHexString(imei) + "a5");
+//                    Channel serverCh = TcpServer.getServermap().get("5a" + bytesToHexString(imei) + "a5");
+                    Channel serverCh = TcpServer.getServermap().get(bytesToHexString(imei));
+
                     if (serverCh != null && serverCh.isActive()) {
-                        serverCh.writeAndFlush(result);
+                        serverCh.writeAndFlush(strToByteArray(result));
                         serverCh.close();
                     }
                     // 通知硬件接收成功
@@ -200,11 +221,6 @@ public class TcpServerHandler
                 }
             }
         }
-    }
-
-    @Override
-    protected void channelRead0(ChannelHandlerContext ctx, byte[] msg) throws Exception {
-
 
     }
 
@@ -240,6 +256,9 @@ public class TcpServerHandler
                 stringBuilder.append(0);
             }
             stringBuilder.append(hv);
+            if (i != src.length-1) {
+                stringBuilder.append(" ");
+            }
         }
         return stringBuilder.toString();
     }

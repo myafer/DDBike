@@ -20,8 +20,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class TcpServer
 {
     private static final Logger logger = Logger.getLogger(TcpServer.class);
-    private static final String IP = "172.24.119.202";
-//    private static final String IP = "192.168.18.123";
+//    private static final String IP = "172.24.119.202";
+    private static final String IP = "192.168.0.103";
     private static final int PORT = 8806;
     protected static final int BIZGROUPSIZE = Runtime.getRuntime().availableProcessors() * 2;
     protected static final int BIZTHREADSIZE = 100;
@@ -44,8 +44,8 @@ public class TcpServer
         throws Exception
       {
          ChannelPipeline pipeline = ch.pipeline();
-          pipeline.addLast("deecoder", new StringDecoder());
-          pipeline.addLast("enncoder", new StringEncoder());
+//          pipeline.addLast("deecoder", new StringDecoder());
+//          pipeline.addLast("enncoder", new StringEncoder());
           //过滤编码
           pipeline.addLast("decoder", new ByteArrayDecoder());
           //过滤编码
