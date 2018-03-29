@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+Class-Path: netty-all-4.1.4.Final.jar commons-collections-3.2.1.jar co
+ mmons-logging-1.1.1.jar commons-lang-2.5.jar ezmorph-1.0.6.jar log4j-
+ api-2.8.2.jar json-lib-2.4-jdk15.jar log4j-1.2-api-2.8.2.jar log4j-co
+ re-2.8.2.jar commons-beanutils-1.8.0.jar
+Main-Class: TcpServer
+
