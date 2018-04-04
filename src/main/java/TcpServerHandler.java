@@ -71,10 +71,12 @@ public class TcpServerHandler
                 switchResult = "0";
             }
         }
+        // 返回命令检测
+        logger.info("device: " + device + "  switch " + switchResult);
 
 //        0 灯光控制电源开关 1 门禁控制电源开关 2  空气净化器控制电源开关 3  体质检测仪控制电源开关 4  空调控制电源开关
-        String  result = HttpRequest.sendPost(url + "/Equipment/UpdateControlStatus", "Code="+ bytesToHexString(imei) +"&Number=" + device + "&Status=" + switchResult);
-        logger.info(result);
+//        String  result = HttpRequest.sendPost(url + "/Equipment/UpdateControlStatus", "Code="+ bytesToHexString(imei) +"&Number=" + device + "&Status=" + switchResult);
+//        logger.info(result);
         return "";
 //        return "{" +
 //                "\"imei\":\"" + bytesToHexString(imei) + "\";" +
@@ -83,37 +85,9 @@ public class TcpServerHandler
 //                "}";
     }
 
-    public void checkStatus(Channel ch) {
-        byte[] co1 = checkDevice(door);
+    public void checkStatus(Channel ch, int device) {
+        byte[] co1 = checkDevice(device);
         ch.writeAndFlush(co1);
-        try {
-            Thread.sleep(100);
-            // 灯
-            byte[] co2 = checkDevice(light);
-            ch.writeAndFlush(co2);
-        } catch (InterruptedException e) { }
-
-        try {
-            Thread.sleep(200);
-            // 空气净化器
-            byte[] co3 = checkDevice(airCleanMachine);
-            ch.writeAndFlush(co3);
-        } catch (InterruptedException e) { }
-
-        try {
-            Thread.sleep(300);
-            // 体质仪
-            byte[] co4 = checkDevice(bodyTester);
-            ch.writeAndFlush(co4);
-        } catch (InterruptedException e) { }
-
-        try {
-            Thread.sleep(400);
-            // 空调
-            byte[] co5 = checkDevice(airConditioner);
-            ch.writeAndFlush(co5);
-        } catch (InterruptedException e) { }
-
     }
 
 
@@ -188,66 +162,69 @@ public class TcpServerHandler
             logger.info(ch);
             if (ch != null && ch.isActive()) {
                 logger.info("xxxxxxxxxxxxx");
+
                 if (type.equals("1")) {
+                    byte[] co = openDevice(door, switch_on);
+                    logger.info(bytesToHexString(co));
                     logger.info("开门！！！");
-                    // 开门
-//                    byte[] co = openDevice(door, switch_on);
-//                    logger.info(bytesToHexString(co));
-//                    ch.writeAndFlush(co);
-//                    try {
-//                        Thread.sleep(1000);
-                        // 开灯
-                        byte[] co1 = openDevice(light, switch_on);
-                        logger.info("开灯！！！");
-                        logger.info(bytesToHexString(co1));
-                        ch.writeAndFlush(co1);
-//                    } catch (InterruptedException e) { }
-
-
+                    ch.writeAndFlush(co);
                 } else if (type.equals("2")) {
-                    // 开空气净化器
-                    byte[] co = openDevice(airCleanMachine, switch_on);
-                    ch.writeAndFlush(co);
-                    try {
-                        Thread.sleep(100);
-                        // 开体质检测器
-                        byte[] co1 = openDevice(bodyTester, switch_on);
-                        ch.writeAndFlush(co1);
-                    } catch (InterruptedException e) { }
-                    try {
-                        Thread.sleep(200);
-                        // 开空调
-                        byte[] co2 = openDevice(airConditioner, switch_on);
-                        ch.writeAndFlush(co2);
-                    } catch (InterruptedException e) { }
+                    byte[] co1 = openDevice(light, switch_on);
+                    logger.info("开灯！！！");
+                    logger.info(bytesToHexString(co1));
+                    ch.writeAndFlush(co1);
                 } else if (type.equals("3")) {
-                    // 关闭命令
+                    byte[] co1 = openDevice(airCleanMachine, switch_on);
+                    logger.info("开空气净化器！！！");
+                    logger.info(bytesToHexString(co1));
+                    ch.writeAndFlush(co1);
+                } else if (type.equals("4")) {
+                    byte[] co1 = openDevice(bodyTester, switch_on);
+                    logger.info("开体质检测仪！！！");
+                    logger.info(bytesToHexString(co1));
+                    ch.writeAndFlush(co1);
+                } else if (type.equals("5")) {
+                    byte[] co1 = openDevice(airConditioner, switch_on);
+                    logger.info("开空调！！！");
+                    logger.info(bytesToHexString(co1));
+                    ch.writeAndFlush(co1);
 
-                    // 关闭气净化器
-                    byte[] co = openDevice(airCleanMachine, switch_off);
-                    ch.writeAndFlush(co);
-                    try {
-                        Thread.sleep(100);
-                        // 关闭质检测器
-                        byte[] co1 = openDevice(bodyTester, switch_off);
-                        ch.writeAndFlush(co1);
-                    } catch (InterruptedException e) { }
+                } else if (type.equals("11")) {
+                    byte[] co1 = openDevice(door, switch_off);
+                    logger.info("关门！！！");
+                    logger.info(bytesToHexString(co1));
+                    ch.writeAndFlush(co1);
+                } else if (type.equals("12")) {
+                    byte[] co1 = openDevice(light, switch_off);
+                    logger.info("关灯！！！");
+                    logger.info(bytesToHexString(co1));
+                    ch.writeAndFlush(co1);
+                } else if (type.equals("13")) {
+                    byte[] co1 = openDevice(airCleanMachine, switch_off);
+                    logger.info("关空气净化器！！！");
+                    logger.info(bytesToHexString(co1));
+                    ch.writeAndFlush(co1);
+                } else if (type.equals("14")) {
+                    byte[] co1 = openDevice(bodyTester, switch_off);
+                    logger.info("关体质检测仪！！！");
+                    logger.info(bytesToHexString(co1));
+                    ch.writeAndFlush(co1);
+                } else if (type.equals("15")) {
+                    byte[] co1 = openDevice(airConditioner, switch_off);
+                    logger.info("关空调！！！");
+                    logger.info(bytesToHexString(co1));
+                    ch.writeAndFlush(co1);
 
-                    try {
-                        Thread.sleep(200);
-                        // 关闭空调
-                        byte[] co2 = openDevice(airConditioner, switch_off);
-                        ch.writeAndFlush(co2);
-                    } catch (InterruptedException e) { }
-                    try {
-                        Thread.sleep(60000);
-                        // 结束之后延时15秒关闭灯光
-                        byte[] co2 = openDevice(light, switch_off);
-                        ch.writeAndFlush(co2);
-                    } catch (InterruptedException e) { }
-
-                } else if (type.equals("0")){
-                    checkStatus(ch);
+                } else if (type.equals("01")){
+                    checkStatus(ch, door);
+                } else if (type.equals("02")){
+                    checkStatus(ch, light);
+                } else if (type.equals("03")){
+                    checkStatus(ch, airCleanMachine);
+                } else if (type.equals("04")){
+                    checkStatus(ch, bodyTester);
+                } else if (type.equals("05")){
+                    checkStatus(ch, airConditioner);
                 } else if (type.equals("-1")) {
                     ch.writeAndFlush(hexStringToBytes("FE 05 00 00 FF 00 98 35"));
                 }
@@ -269,7 +246,7 @@ public class TcpServerHandler
                 TcpServer.getMap().put(bytesToHexString(bmsg), ctx.channel());
                 logger.info(TcpServer.getMap());
                 // 返回心跳数据
-                ctx.writeAndFlush(bmsg);
+//                ctx.writeAndFlush(bmsg);
             } else  {  // 返回包
 
                 if (bmsg.length > 17) {
@@ -287,7 +264,7 @@ public class TcpServerHandler
 
 
 
-                    ctx.writeAndFlush(bmsg);
+//                    ctx.writeAndFlush(bmsg);
 
 
 
