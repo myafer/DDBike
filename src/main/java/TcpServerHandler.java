@@ -40,7 +40,7 @@ public class TcpServerHandler
     }
 
     // 控制硬件解码
-    public String controlDecode(byte[] imei, byte[] data) {
+    public void controlDecode(byte[] imei, byte[] data) {
         String device = "";
         if (data[0] == 0x01) {
             device = "0"; // 灯
@@ -56,9 +56,10 @@ public class TcpServerHandler
 
         // 0x0f 控制  0x01 查询
         String switchResult = "";
-
+        logger.info("------- 返回结果 --------");
+        logger.info(bytesToHexString(data));
         int type = (int)(data[1] & 0xFF);
-        if (type == 0x0f) {
+        if (type == 0x05) {
             if ((int)(data[4] & 0xFF) == switch_on) {
                 switchResult = "1";
             } else  {
@@ -73,16 +74,8 @@ public class TcpServerHandler
         }
         // 返回命令检测
         logger.info("device: " + device + "  switch " + switchResult);
-
-//        0 灯光控制电源开关 1 门禁控制电源开关 2  空气净化器控制电源开关 3  体质检测仪控制电源开关 4  空调控制电源开关
-//        String  result = HttpRequest.sendPost(url + "/Equipment/UpdateControlStatus", "Code="+ bytesToHexString(imei) +"&Number=" + device + "&Status=" + switchResult);
-//        logger.info(result);
-        return "";
-//        return "{" +
-//                "\"imei\":\"" + bytesToHexString(imei) + "\";" +
-//                "\"device\":\"" + device + "\";" +
-//                "\"switch_on\":\"" + switchResult + "\"" +
-//                "}";
+        // 上传结果到服务器
+        AsynHttp.sendDeviceStatus(device, switchResult, bytesToHexString(imei));
     }
 
     public void checkStatus(Channel ch, int device) {
@@ -162,72 +155,207 @@ public class TcpServerHandler
             logger.info(ch);
             if (ch != null && ch.isActive()) {
                 logger.info("xxxxxxxxxxxxx");
-
                 if (type.equals("1")) {
                     byte[] co = openDevice(door, switch_on);
                     logger.info(bytesToHexString(co));
                     logger.info("开门！！！");
                     ch.writeAndFlush(co);
+                    try {
+                        // 括号内的参数是毫秒值,线程休眠1s
+                        Thread.sleep(500);
+                        byte[] co1 = openDevice(light, switch_on);
+                        logger.info("开灯！！！");
+                        logger.info(bytesToHexString(co1));
+                        ch.writeAndFlush(co1);
+                    } catch (InterruptedException e) {logger.info("error");}
                 } else if (type.equals("2")) {
-                    byte[] co1 = openDevice(light, switch_on);
-                    logger.info("开灯！！！");
-                    logger.info(bytesToHexString(co1));
-                    ch.writeAndFlush(co1);
-                } else if (type.equals("3")) {
                     byte[] co1 = openDevice(airCleanMachine, switch_on);
                     logger.info("开空气净化器！！！");
                     logger.info(bytesToHexString(co1));
                     ch.writeAndFlush(co1);
-                } else if (type.equals("4")) {
-                    byte[] co1 = openDevice(bodyTester, switch_on);
-                    logger.info("开体质检测仪！！！");
-                    logger.info(bytesToHexString(co1));
-                    ch.writeAndFlush(co1);
-                } else if (type.equals("5")) {
-                    byte[] co1 = openDevice(airConditioner, switch_on);
-                    logger.info("开空调！！！");
-                    logger.info(bytesToHexString(co1));
-                    ch.writeAndFlush(co1);
-
-                } else if (type.equals("11")) {
-                    byte[] co1 = openDevice(door, switch_off);
-                    logger.info("关门！！！");
-                    logger.info(bytesToHexString(co1));
-                    ch.writeAndFlush(co1);
-                } else if (type.equals("12")) {
-                    byte[] co1 = openDevice(light, switch_off);
-                    logger.info("关灯！！！");
-                    logger.info(bytesToHexString(co1));
-                    ch.writeAndFlush(co1);
-                } else if (type.equals("13")) {
+                    try {
+                        // 括号内的参数是毫秒值,线程休眠1s
+                        Thread.sleep(500);
+                        byte[] co2 = openDevice(bodyTester, switch_on);
+                        logger.info("开体质检测仪！！！");
+                        logger.info(bytesToHexString(co2));
+                        ch.writeAndFlush(co2);
+                    } catch (InterruptedException e) {logger.info("error");}
+                    try {
+                        // 括号内的参数是毫秒值,线程休眠2s
+                        Thread.sleep(1000);
+                        byte[] co3 = openDevice(airConditioner, switch_on);
+                        logger.info("开空调！！！");
+                        logger.info(bytesToHexString(co3));
+                        ch.writeAndFlush(co3);
+                    } catch (InterruptedException e) {logger.info("error");}
+                } else if (type.equals("3")) {
                     byte[] co1 = openDevice(airCleanMachine, switch_off);
                     logger.info("关空气净化器！！！");
                     logger.info(bytesToHexString(co1));
                     ch.writeAndFlush(co1);
-                } else if (type.equals("14")) {
-                    byte[] co1 = openDevice(bodyTester, switch_off);
-                    logger.info("关体质检测仪！！！");
-                    logger.info(bytesToHexString(co1));
-                    ch.writeAndFlush(co1);
-                } else if (type.equals("15")) {
-                    byte[] co1 = openDevice(airConditioner, switch_off);
-                    logger.info("关空调！！！");
-                    logger.info(bytesToHexString(co1));
-                    ch.writeAndFlush(co1);
-
-                } else if (type.equals("01")){
+                    try {
+                        // 括号内的参数是毫秒值,线程休眠1s
+                        Thread.sleep(500);
+                        byte[] co2 = openDevice(bodyTester, switch_off);
+                        logger.info("关体质检测仪！！！");
+                        logger.info(bytesToHexString(co2));
+                        ch.writeAndFlush(co2);
+                    } catch (InterruptedException e) {logger.info("error");}
+                    try {
+                        // 括号内的参数是毫秒值,线程休眠2s
+                        Thread.sleep(1000);
+                        byte[] co3 = openDevice(airConditioner, switch_off);
+                        logger.info("关空调！！！");
+                        logger.info(bytesToHexString(co3));
+                        ch.writeAndFlush(co3);
+                    } catch (InterruptedException e) { logger.info("error"); }
+                } else if (type.equals("4")) {
+                    byte[] co3 = openDevice(light, switch_off);
+                    logger.info("关灯！！！");
+                    logger.info(bytesToHexString(co3));
+                    ch.writeAndFlush(co3);
+                } else if (type.equals("6")) {
+                    byte[] co3 = openDevice(door, switch_off);
+                    logger.info("关门！！！");
+                    logger.info(bytesToHexString(co3));
+                    ch.writeAndFlush(co3);
+                } else if (type.equals("5")) {
+                    byte[] co3 = openDevice(light, switch_on);
+                    logger.info("开灯！！！");
+                    logger.info(bytesToHexString(co3));
+                    ch.writeAndFlush(co3);
+                }  else if (type.equals("0")) {
                     checkStatus(ch, door);
-                } else if (type.equals("02")){
-                    checkStatus(ch, light);
-                } else if (type.equals("03")){
-                    checkStatus(ch, airCleanMachine);
-                } else if (type.equals("04")){
-                    checkStatus(ch, bodyTester);
-                } else if (type.equals("05")){
-                    checkStatus(ch, airConditioner);
+                    try {
+                        Thread.sleep(200);
+                        checkStatus(ch, light);
+                    } catch (InterruptedException e) {logger.info("error");}
+                    try {
+                        Thread.sleep(400);
+                        checkStatus(ch, airCleanMachine);
+                    } catch (InterruptedException e) {logger.info("error");}
+                    try {
+                        Thread.sleep(600);
+                        checkStatus(ch, bodyTester);
+                    } catch (InterruptedException e) {logger.info("error");}
+                    try {
+                        Thread.sleep(800);
+                        checkStatus(ch, airConditioner);
+                    } catch (InterruptedException e) {logger.info("error");}
                 } else if (type.equals("-1")) {
-                    ch.writeAndFlush(hexStringToBytes("FE 05 00 00 FF 00 98 35"));
+                    byte[] co1 = openDevice(door, switch_off);
+                    logger.info("关门！！！");
+                    logger.info(bytesToHexString(co1));
+                    ch.writeAndFlush(co1);
+                    try {
+                        // 括号内的参数是毫秒值,线程休眠1s
+                        Thread.sleep(500);
+                        byte[] co2 = openDevice(light, switch_off);
+                        logger.info("关灯！！！");
+                        logger.info(bytesToHexString(co2));
+                        ch.writeAndFlush(co2);
+                    } catch (InterruptedException e) {logger.info("error");}
                 }
+
+
+
+//                if (type.equals("1")) {
+//                    byte[] co1 = openDevice(light, switch_on);
+//                    logger.info("开灯！！！");
+//                    logger.info(bytesToHexString(co1));
+//                    ch.writeAndFlush(co1);
+//                } else if (type.equals("2")) {
+//                    byte[] co = openDevice(door, switch_on);
+//                    logger.info(bytesToHexString(co));
+//                    logger.info("开门！！！");
+//                    ch.writeAndFlush(co);
+//                } else if (type.equals("3")) {
+//                    byte[] co1 = openDevice(airCleanMachine, switch_on);
+//                    logger.info("开空气净化器！！！");
+//                    logger.info(bytesToHexString(co1));
+//                    ch.writeAndFlush(co1);
+//                } else if (type.equals("4")) {
+//                    byte[] co1 = openDevice(bodyTester, switch_on);
+//                    logger.info("开体质检测仪！！！");
+//                    logger.info(bytesToHexString(co1));
+//                    ch.writeAndFlush(co1);
+//                } else if (type.equals("5")) {
+//                    byte[] co1 = openDevice(airConditioner, switch_on);
+//                    logger.info("开空调！！！");
+//                    logger.info(bytesToHexString(co1));
+//                    ch.writeAndFlush(co1);
+//
+//                } else if (type.equals("11")) {
+//                    byte[] co1 = openDevice(light, switch_off);
+//                    logger.info("关灯！！！");
+//                    logger.info(bytesToHexString(co1));
+//                    ch.writeAndFlush(co1);
+//                } else if (type.equals("12")) {
+//                    byte[] co1 = openDevice(door, switch_off);
+//                    logger.info("关门！！！");
+//                    logger.info(bytesToHexString(co1));
+//                    ch.writeAndFlush(co1);
+//                } else if (type.equals("13")) {
+//                    byte[] co1 = openDevice(airCleanMachine, switch_off);
+//                    logger.info("关空气净化器！！！");
+//                    logger.info(bytesToHexString(co1));
+//                    ch.writeAndFlush(co1);
+//                } else if (type.equals("14")) {
+//                    byte[] co1 = openDevice(bodyTester, switch_off);
+//                    logger.info("关体质检测仪！！！");
+//                    logger.info(bytesToHexString(co1));
+//                    ch.writeAndFlush(co1);
+//                } else if (type.equals("15")) {
+//                    byte[] co1 = openDevice(airConditioner, switch_off);
+//                    logger.info("关空调！！！");
+//                    logger.info(bytesToHexString(co1));
+//                    ch.writeAndFlush(co1);
+//
+//                } else if (type.equals("01")){
+//                    checkStatus(ch, light);
+//                } else if (type.equals("02")){
+//                    checkStatus(ch, door);
+//                } else if (type.equals("03")){
+//                    checkStatus(ch, airCleanMachine);
+//                } else if (type.equals("04")){
+//                    checkStatus(ch, bodyTester);
+//                } else if (type.equals("05")){
+//                    checkStatus(ch, airConditioner);
+//                } else
+//                    if (type.equals("-1")) {
+//                    byte[] co1 = openDevice(light, switch_on);
+//                    logger.info("开灯！！！");
+//                    logger.info(bytesToHexString(co1));
+//                    ch.writeAndFlush(co1);
+//                    try {
+//                        // 括号内的参数是毫秒值,线程休眠1s
+//                        Thread.sleep(1000);
+//                        byte[] co = openDevice(door, switch_on);
+//                        logger.info(bytesToHexString(co));
+//                        logger.info("开门！！！");
+//                        ch.writeAndFlush(co);
+//                    } catch (InterruptedException e) {logger.info("error");}
+//                } else if (type.equals("-2")) {
+//                    checkStatus(ch, door);
+//                    try {
+//                        Thread.sleep(100);
+//                        checkStatus(ch, light);
+//                    } catch (InterruptedException e) {logger.info("error");}
+//                    try {
+//                        Thread.sleep(200);
+//                        checkStatus(ch, airCleanMachine);
+//                    } catch (InterruptedException e) {logger.info("error");}
+//                    try {
+//                        Thread.sleep(300);
+//                        checkStatus(ch, bodyTester);
+//                    } catch (InterruptedException e) {logger.info("error");}
+//                    try {
+//                        Thread.sleep(400);
+//                        checkStatus(ch, airConditioner);
+//                    } catch (InterruptedException e) {logger.info("error");}
+//                }
+
             } else {
                 logger.info("没有找到相应的线程或者设备失活。。。应该是设备不在线。。设备号：" + imei);
                 ctx.channel().writeAndFlush("{\"status\": \"0\", \"message\": \"机器不在线，请联系客服人员。\"}");
@@ -240,46 +368,30 @@ public class TcpServerHandler
                 System.out.print(" ");
             }
             // 心跳
-            if (bmsg[0] == 90 && bmsg[bmsg.length-1] == -91) {
+            if ((int)(bmsg[0] & 0xFF) == 0x3a && (int)(bmsg[bmsg.length-1]  & 0xFF) == 0x2a) {
                 logger.info("心跳数据进入。。。");
                 // 根据心跳保存长连接
                 TcpServer.getMap().put(bytesToHexString(bmsg), ctx.channel());
                 logger.info(TcpServer.getMap());
-                // 返回心跳数据
-//                ctx.writeAndFlush(bmsg);
             } else  {  // 返回包
 
-                if (bmsg.length > 17) {
-                    byte[] imei = new byte[17];
-                    byte[] co = new byte[bmsg.length - 17];
+                if (bmsg.length > 15) {
+                    byte[] imei = new byte[15];
+                    byte[] co = new byte[bmsg.length - 15];
                     for (int j = 0; j < imei.length; j++) {
                         imei[j] = bmsg[j];
                     }
                     for (int i = imei.length; i < bmsg.length; i++) {
                         co[i - imei.length] = bmsg[i];
                     }
+                    logger.info(bytesToHexString(bmsg));
                     logger.info("获取长连接" + bytesToHexString(imei));
                     logger.info(TcpServer.getServermap());
-                    String result = controlDecode(imei, co);
-
-
-
-//                    ctx.writeAndFlush(bmsg);
-
-
-
-////                    Channel serverCh = TcpServer.getServermap().get("5a" + bytesToHexString(imei) + "a5");
-//                    Channel serverCh = TcpServer.getServermap().get(bytesToHexString(imei));
-//
-//                    if (serverCh != null && serverCh.isActive()) {
-//                        serverCh.writeAndFlush(strToByteArray(result));
-//                        serverCh.close();
-//                    }
-                    // 通知硬件接收成功
+                    // 解析命令 并上传到HTTP服务器
+                    controlDecode(imei, co);
                 }
             }
         }
-
     }
 
 
@@ -347,18 +459,6 @@ public class TcpServerHandler
      logger.warn("Unexpected exception from downstream.", cause);
      ctx.close();
   }
-
-//  public static DataType getType(String source) {
-//      if (source.contains("ping")) {
-//          return DataType.PING;
-//      } else if (source.contains("login")) {
-//          return DataType.LOGIN;
-//      } else if (source.contains("post")) {
-//          return DataType.POST;
-//      } else {
-//          return DataType.NONE;
-//      }
-//  }
 
   public static boolean trimFirstAndLastChar(String source)
   {

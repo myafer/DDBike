@@ -83,6 +83,7 @@
        URL realUrl = new URL(url);
        // 打开和URL之间的连接
        URLConnection conn = realUrl.openConnection();
+       conn.setConnectTimeout(10000);
        // 设置通用的请求属性
        conn.setRequestProperty("accept", "*/*");
        conn.setRequestProperty("connection", "Keep-Alive");
@@ -106,7 +107,7 @@
        }
      } catch (Exception e) {
        System.out.println("发送 POST 请求出现异常！"+e);
-       e.printStackTrace();
+//       e.printStackTrace();
      }
      //使用finally块来关闭输出流、输入流
      finally{
