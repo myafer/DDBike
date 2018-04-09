@@ -14,6 +14,7 @@ import org.apache.http.nio.protocol.HttpAsyncResponseConsumer;
 import org.apache.http.protocol.HttpContext;
 import org.apache.log4j.Logger;
 
+import java.net.URLEncoder;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Future;
@@ -24,23 +25,25 @@ import java.util.concurrent.Future;
 public class AsynHttp {
 
     private static final Logger logger = Logger.getLogger(AsynHttp.class);
-    public static String url = "http://192.168.18.27:8038/";
+    public static String url = "http://panda-play.com/index.php/api";
 
     public static void sendDeviceStatus(String fdevice, String fswitchResult, String fimei) {
         logger.info(String.format("device = %s, result = %s, fimei = %s", fdevice, fswitchResult, fimei));
         new Thread(new Runnable() {
             @Override
             public void run() {
-                logger.info(String.format("device = %s, result = %s, fimei = %s", fdevice, fswitchResult, fimei));
-                String result = HttpRequest.sendPost (url + "/Equipment/UpdateControlStatus", "Code="+ fimei +"&Number=" + fdevice + "&Status=" + fswitchResult);
+                String tt = fimei.replaceAll("\\s", "20%");
+                logger.info(String.format("device = %s, result = %s, fimei = %s", fdevice, fswitchResult, tt));
+                String result = HttpRequest.sendGet (url + "/Equipment/UpdateControlStatus", "Code="+ tt +"&Number=" + fdevice + "&Status=" + fswitchResult);
                 logger.info(result);
+                logger.info("Code="+ tt +"&Number=" + fdevice + "&Status=" + fswitchResult);
             }
         }).start();
     }
 
     public static void main(final String[] args) throws Exception {
         logger.info("2222222222");
-        sendDeviceStatus("1", "2", "2");
+        sendDeviceStatus("1", "2", "5a 3 5 8 5 1 1 0 4 0 3 0 7 9 7 1 a5");
         logger.info("cccccccc");
     }
 
