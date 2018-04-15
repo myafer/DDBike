@@ -32,7 +32,8 @@ public class AsynHttp {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                String tt = fimei.replaceAll("\\s", "20%");
+                String ff = "3a " + fimei + " 2a";
+                String tt = ff.replaceAll("\\s", "%20");
                 logger.info(String.format("device = %s, result = %s, fimei = %s", fdevice, fswitchResult, tt));
                 String result = HttpRequest.sendGet (url + "/Equipment/UpdateControlStatus", "Code="+ tt +"&Number=" + fdevice + "&Status=" + fswitchResult);
                 logger.info(result);

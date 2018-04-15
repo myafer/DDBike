@@ -75,7 +75,9 @@ public class TcpServerHandler
         // 返回命令检测
         logger.info("device: " + device + "  switch " + switchResult);
         // 上传结果到服务器
-        AsynHttp.sendDeviceStatus(device, switchResult, bytesToHexString(imei));
+        if (!device.equals("") && !switchResult.equals("")) {
+            AsynHttp.sendDeviceStatus(device, switchResult, bytesToHexString(imei));
+        }
     }
 
     public void checkStatus(Channel ch, int device) {
@@ -147,10 +149,10 @@ public class TcpServerHandler
             logger.info("控制命令： " + json);
 
             // 保存长连接到map
-            TcpServer.getServermap().put(imei, ctx.channel());
-            logger.info(TcpServer.getServermap());
-            logger.info(TcpServer.getMap());
-            logger.info("imei " + imei);
+//            TcpServer.getServermap().put(imei, ctx.channel());
+//            logger.info(TcpServer.getServermap());
+//            logger.info(TcpServer.getMap());
+//            logger.info("imei " + imei);
             Channel ch = TcpServer.getMap().get(imei);
             logger.info(ch);
             if (ch != null && ch.isActive()) {
@@ -219,14 +221,146 @@ public class TcpServerHandler
                     checkStatus(ch, airConditioner);
                 } else if (type.equals("-1")) {
                     ch.writeAndFlush(hexStringToBytes("FE 05 00 00 FF 00 98 35"));
+                } else if (type.equals("31")) {
+
+                    byte[] co = openDevice(light, switch_on);
+                    logger.info(bytesToHexString(co));
+                    logger.info("开灯！！！");
+                    ch.writeAndFlush(co);
+
+                    new Thread(){
+                        public void run(){
+                            try {
+                                Thread.sleep(100);
+                                byte[] co1 = openDevice(door, switch_on);
+                                logger.info("开门！！！");
+                                logger.info(bytesToHexString(co1));
+                                ch.writeAndFlush(co1);
+                            } catch (InterruptedException e) { }
+                        }
+                    }.start();
+                    new Thread(){
+                        public void run(){
+                            try {
+                                Thread.sleep(10000);
+                                byte[] co1 = openDevice(door, switch_off);
+                                logger.info("关门！！！");
+                                logger.info(bytesToHexString(co1));
+                                ch.writeAndFlush(co1);
+                            } catch (InterruptedException e) { }
+                        }
+                    }.start();
+                } else if (type.equals("32")) {
+
+                    byte[] co1 = openDevice(airCleanMachine, switch_on);
+                    logger.info("开空气净化器！！！");
+                    logger.info(bytesToHexString(co1));
+                    ch.writeAndFlush(co1);
+
+                    new Thread(){
+                        public void run(){
+                            try {
+                                Thread.sleep(500);
+                                byte[] co1 = openDevice(bodyTester, switch_on);
+                                logger.info("开体质检测仪！！！");
+                                logger.info(bytesToHexString(co1));
+                                ch.writeAndFlush(co1);
+                            } catch (InterruptedException e) { }
+                        }
+                    }.start();
+                    new Thread(){
+                        public void run(){
+                            try {
+                                Thread.sleep(1000);
+
+                                byte[] co1 = openDevice(airConditioner, switch_on);
+                                logger.info("开空调！！！");
+                                logger.info(bytesToHexString(co1));
+                                ch.writeAndFlush(co1);
+                            } catch (InterruptedException e) { }
+                        }
+                    }.start();
+                } else if (type.equals("33")){
+                    byte[] co1 = openDevice(airCleanMachine, switch_off);
+                    logger.info("关空气净化器！！！");
+                    logger.info(bytesToHexString(co1));
+                    ch.writeAndFlush(co1);
+
+                    new Thread(){
+                        public void run(){
+                            try {
+                                Thread.sleep(500);
+                                byte[] co1 = openDevice(bodyTester, switch_off);
+                                logger.info("关体质检测仪！！！");
+                                logger.info(bytesToHexString(co1));
+                                ch.writeAndFlush(co1);
+                            } catch (InterruptedException e) { }
+                        }
+                    }.start();
+                    new Thread(){
+                        public void run(){
+                            try {
+                                Thread.sleep(1000);
+
+                                byte[] co1 = openDevice(airConditioner, switch_off);
+                                logger.info("关空调！！！");
+                                logger.info(bytesToHexString(co1));
+                                ch.writeAndFlush(co1);
+                            } catch (InterruptedException e) { }
+                        }
+                    }.start();
+                    new Thread(){
+                        public void run(){
+                            try {
+                                Thread.sleep(30000);
+                                byte[] co1 = openDevice(light, switch_off);
+                                logger.info("关灯！！！");
+                                logger.info(bytesToHexString(co1));
+                                ch.writeAndFlush(co1);
+                            } catch (InterruptedException e) { }
+                        }
+                    }.start();
+                } else if (type.equals("30")) {
+                    checkStatus(ch, light);
+                    new Thread(){
+                        public void run(){
+                            try {
+                                Thread.sleep(500);
+                                checkStatus(ch, door);
+                            } catch (InterruptedException e) { }
+                        }
+                    }.start();
+                    new Thread(){
+                        public void run(){
+                            try {
+                                Thread.sleep(1000);
+                                checkStatus(ch, airCleanMachine);
+                            } catch (InterruptedException e) { }
+                        }
+                    }.start();
+                    new Thread(){
+                        public void run(){
+                            try {
+                                Thread.sleep(1500);
+                                checkStatus(ch, bodyTester);
+                            } catch (InterruptedException e) { }
+                        }
+                    }.start();
+                    new Thread(){
+                        public void run(){
+                            try {
+                                Thread.sleep(2000);
+                                checkStatus(ch, airConditioner);
+                            } catch (InterruptedException e) { }
+                        }
+                    }.start();
                 }
             } else {
                 logger.info("没有找到相应的线程或者设备失活。。。应该是设备不在线。。设备号：" + imei);
 //                ctx.channel().writeAndFlush("{\"status\": \"0\", \"message\": \"机器不在线，请联系客服人员。\"}");
 //                ctx.channel().close();
-                ctx.channel().flush();
-                ctx.channel().close();
             }
+            ctx.close();
         } else  {
             byte[] bmsg = msg;
             for (int i = 0; i < bmsg.length; i++ ) {
@@ -257,6 +391,7 @@ public class TcpServerHandler
                     controlDecode(imei, co);
                 }
             }
+            ctx.channel().flush();
         }
     }
 

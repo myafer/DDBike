@@ -26,8 +26,11 @@ public class TcpServer
     private static final int PORT = 8806;
     protected static final int BIZGROUPSIZE = Runtime.getRuntime().availableProcessors() * 2;
     protected static final int BIZTHREADSIZE = 100;
-    private static final EventLoopGroup bossGroup = new NioEventLoopGroup(BIZGROUPSIZE);
-    private static final EventLoopGroup workerGroup = new NioEventLoopGroup(100);
+//    private static final EventLoopGroup bossGroup = new NioEventLoopGroup(BIZGROUPSIZE);
+//    private static final EventLoopGroup workerGroup = new NioEventLoopGroup(100);
+
+    private static final EventLoopGroup bossGroup = new NioEventLoopGroup(2);
+    private static final EventLoopGroup workerGroup = new NioEventLoopGroup(2);
 
     private static Map<String, Channel> map = new ConcurrentHashMap<String, Channel>();
     private static Map<String, Channel> servermap = new ConcurrentHashMap<String, Channel>();
