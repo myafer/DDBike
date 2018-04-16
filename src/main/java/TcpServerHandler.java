@@ -1,6 +1,8 @@
 
 import io.netty.channel.*;
 import net.sf.json.JSONObject;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.log4j.Logger;
 
 
@@ -8,7 +10,7 @@ import org.apache.log4j.Logger;
 public class TcpServerHandler
   extends SimpleChannelInboundHandler<byte[]>
 {
-    private static final Logger logger = Logger.getLogger(TcpServerHandler.class);
+    private static final Log logger =  LogFactory.getLog("TcpServerHandler");
 
     static int imei_length = 18;
 
@@ -138,6 +140,7 @@ public class TcpServerHandler
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, byte[] msg) throws Exception {
+
         logger.info("88888888" + msg);
         String msgs = new String(msg,"UTF-8");
         if (isJson(msgs)) {

@@ -1,3 +1,5 @@
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.http.*;
 //import org.apache.http.HttpRequest;
 import org.apache.http.client.CredentialsProvider;
@@ -24,7 +26,9 @@ import java.util.concurrent.Future;
  */
 public class AsynHttp {
 
-    private static final Logger logger = Logger.getLogger(AsynHttp.class);
+//    private static final Logger logger = Logger.getLogger(AsynHttp.class);
+    private static final Log logger =  LogFactory.getLog("AsynHttp");
+
     public static String url = "http://panda-play.com/index.php/api";
 
     public static void sendDeviceStatus(String fdevice, String fswitchResult, String fimei) {

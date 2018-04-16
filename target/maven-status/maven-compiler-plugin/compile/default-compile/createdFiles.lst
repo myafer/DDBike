@@ -6,8 +6,8 @@ DB.class
 TcpServerHandler$1.class
 TcpServerHandler$9.class
 CRC16M.class
-AsynHttp$1.class
 TcpServer$1.class
+AsynHttp$1.class
 TcpServerHandler$4.class
 TcpServerHandler$10.class
 HttpRequest.class

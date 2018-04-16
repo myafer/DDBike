@@ -12,6 +12,8 @@ import io.netty.handler.codec.bytes.ByteArrayEncoder;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 import io.netty.handler.timeout.ReadTimeoutHandler;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.log4j.Logger;
 
 import java.util.Map;
@@ -21,7 +23,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class TcpServer
 {
-    private static final Logger logger = Logger.getLogger(TcpServer.class);
+//    private static final Logger logger = Logger.getLogger(TcpServer.class);
+    private static final Log logger =  LogFactory.getLog("TcpServer");
+
     private static final String IP = "172.24.119.202";
 //    private static final String IP = "192.168.18.133";
     private static final int PORT = 8806;
@@ -71,6 +75,7 @@ public class TcpServer
   {
      run();
      logger.info("TCP服务开启...xxx");
+     System.out.println("TCP服务开启...xxx");
   }
 
     public static Map<String, Channel> getMap() {
