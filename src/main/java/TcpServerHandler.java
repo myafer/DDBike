@@ -363,16 +363,17 @@ public class TcpServerHandler
             ctx.close();
         } else  {
             byte[] bmsg = msg;
-            for (int i = 0; i < bmsg.length; i++ ) {
-                System.out.print(bmsg[i]);
-                System.out.print(" ");
-            }
+//            for (int i = 0; i < bmsg.length; i++ ) {
+//                System.out.print(bmsg[i]);
+//                System.out.print(" ");
+//            }
             // 心跳
             if ((int)(bmsg[0] & 0xFF) == 0x3a && (int)(bmsg[bmsg.length-1]  & 0xFF) == 0x2a) {
                 logger.info("心跳数据进入。。。");
                 // 根据心跳保存长连接
                 TcpServer.getMap().put(bytesToHexString(bmsg), ctx.channel());
                 logger.info(TcpServer.getMap());
+                ctx.channel().writeAndFlush(bmsg);
             } else  {  // 返回包
 
                 if (bmsg.length > 15) {
@@ -391,7 +392,8 @@ public class TcpServerHandler
                     controlDecode(imei, co);
                 }
             }
-            ctx.channel().flush();
+//            ctx.channel().flush();
+
         }
     }
 

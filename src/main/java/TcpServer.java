@@ -2,6 +2,7 @@
 
 
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
@@ -22,7 +23,7 @@ public class TcpServer
 {
     private static final Logger logger = Logger.getLogger(TcpServer.class);
     private static final String IP = "172.24.119.202";
-//    private static final String IP = "192.168.0.103";
+//    private static final String IP = "192.168.18.133";
     private static final int PORT = 8806;
     protected static final int BIZGROUPSIZE = Runtime.getRuntime().availableProcessors() * 2;
     protected static final int BIZTHREADSIZE = 100;
@@ -41,7 +42,8 @@ public class TcpServer
      ServerBootstrap b = new ServerBootstrap();
      b.group(bossGroup, workerGroup);
      b.channel(NioServerSocketChannel.class);
-
+     b.childOption(ChannelOption.WRITE_BUFFER_WATER_MARK, WriteBufferWaterMark.DEFAULT);
+     b.childOption(ChannelOption.TCP_NODELAY, true);
      b.childHandler(new ChannelInitializer<SocketChannel>()
     {
         public void initChannel(SocketChannel ch)

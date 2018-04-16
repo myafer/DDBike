@@ -1,34 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configuration status="error">
-    <appenders>
-        <Console name="Console" target="SYSTEM_OUT">
-            <ThresholdFilter level="trace" onMatch="ACCEPT" onMismatch="DENY"/>
-            <PatternLayout pattern="%d{HH:mm:ss.SSS} %-5level %class{36} %L %M - %msg%xEx%n"/>
-        </Console>
 
-        <File name="log" fileName="logs/DDBike.log" append="true">
-            <PatternLayout pattern="%d{HH:mm:ss.SSS} %-5level %class{36} %L %M - %msg%xEx%n"/>
-        </File>
+<configuration status="info">
+<Properties>
+    <Property name="fileName">loginModule.log</Property>
+    <Property name="backupFilePatch">./logs/</Property>
+</Properties>
+<appenders>
+    <Console name="Console" target="SYSTEM_OUT">
+        <ThresholdFilter level="info" onMatch="ACCEPT" onMismatch="DENY" />
+        <PatternLayout pattern="%d{HH:mm:ss.SSS} %-5level %class{36} %L %M - %msg%xEx%n" />
+    </Console>
 
-        <File name="ERROR" fileName="logs/error.log">
-            <ThresholdFilter level="error" onMatch="ACCEPT" onMismatch="DENY"/>
-            <PatternLayout pattern="%d{yyyy.MM.dd 'at' HH:mm:ss z} %-5level %class{36} %L %M - %msg%xEx%n"/>
-        </File>
+    <RollingFile name="RollingFile" fileName="${backupFilePatch}/DDBike.log" filePattern="${backupFilePatch}/DDBike-%d{yyyy-MM-dd}.log">
+        <PatternLayout pattern="%-d{yyyy-MM-dd HH:mm:ss} [%thread] %m%n"/>
+        <Policies>
+            <TimeBasedTriggeringPolicy modulate="true" interval="1"/>
+        </Policies>
+    </RollingFile>
+</appenders>
 
-        <!--<RollingFile name="RollingFile" fileName="logs/web.log"-->
-                     <!--filePattern="logs/$${date:yyyy-MM}/web-%d{MM-dd-yyyy}-%i.log.gz">-->
-            <!--<PatternLayout pattern="%d{yyyy-MM-dd 'at' HH:mm:ss z} %-5level %class{36} %L %M - %msg%xEx%n"/>-->
-            <!--<SizeBasedTriggeringPolicy size="2MB"/>-->
-        <!--</RollingFile>-->
-    </appenders>
-
-    <loggers>
-        <root level="info">
-            <!--<appender-ref ref="RollingFile"/>-->
-            <appender-ref ref="Console"/>
-            <appender-ref ref="ERROR" />
-            <appender-ref ref="log"/>
-        </root>
-
-    </loggers>
+<loggers>
+    <Logger name="org.apache.log4j.xml" level="info" additivity="true">
+        <AppenderRef ref="RollingFile" />
+    </Logger>
+    <Root level="info">
+        <AppenderRef ref="Console" />
+        <AppenderRef ref="RollingFile"/>
+    </Root>
+</loggers>
 </configuration>
