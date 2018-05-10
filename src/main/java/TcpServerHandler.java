@@ -149,6 +149,10 @@ public class TcpServerHandler
             String type = json.get("type").toString();
             // imei 号
             String imei = json.get("imei").toString();
+            int seconds = 30;
+            if (json.get("imei") != null) {
+                seconds = Integer.parseInt(json.get("seconds").toString());
+            }
             logger.info("控制命令： " + json);
 
             // 保存长连接到map
@@ -230,7 +234,6 @@ public class TcpServerHandler
                     logger.info(bytesToHexString(co));
                     logger.info("开灯！！！");
                     ch.writeAndFlush(co);
-
                     new Thread(){
                         public void run(){
                             try {
@@ -253,12 +256,29 @@ public class TcpServerHandler
                             } catch (InterruptedException e) { }
                         }
                     }.start();
+
+                    // 开门之后延时3分钟关灯 如果启动设备则移除关闭灯的线程
+                    Thread t = new Thread(){
+                        public void run(){
+                            try {
+                                Thread.sleep(180000);
+                                byte[] co1 = openDevice(light, switch_off);
+                                logger.info("关灯！！！");
+                                logger.info(bytesToHexString(co1));
+                                ch.writeAndFlush(co1);
+                            } catch (InterruptedException e) { }
+                        }
+                    };
+                    t.start();
+                    TcpServer.getLightThreadMap().put(imei, t);
+
                 } else if (type.equals("32")) {
 
                     byte[] co1 = openDevice(airCleanMachine, switch_on);
                     logger.info("开空气净化器！！！");
                     logger.info(bytesToHexString(co1));
                     ch.writeAndFlush(co1);
+                    TcpServer.getLightThreadMap().remove(imei);
 
                     new Thread(){
                         public void run(){
@@ -312,17 +332,20 @@ public class TcpServerHandler
                             } catch (InterruptedException e) { }
                         }
                     }.start();
-                    new Thread(){
-                        public void run(){
-                            try {
-                                Thread.sleep(30000);
-                                byte[] co1 = openDevice(light, switch_off);
-                                logger.info("关灯！！！");
-                                logger.info(bytesToHexString(co1));
-                                ch.writeAndFlush(co1);
-                            } catch (InterruptedException e) { }
-                        }
-                    }.start();
+                    if (seconds > 0) {
+                        int secondss = seconds;
+                        new Thread(){
+                            public void run(){
+                                try {
+                                    Thread.sleep(secondss * 1000);
+                                    byte[] co1 = openDevice(light, switch_off);
+                                    logger.info("关灯！！！");
+                                    logger.info(bytesToHexString(co1));
+                                    ch.writeAndFlush(co1);
+                                } catch (InterruptedException e) { }
+                            }
+                        }.start();
+                    }
                 } else if (type.equals("30")) {
                     checkStatus(ch, light);
                     new Thread(){

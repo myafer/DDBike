@@ -39,6 +39,7 @@ public class TcpServer
 
     private static Map<String, Channel> map = new ConcurrentHashMap<String, Channel>();
     private static Map<String, Channel> servermap = new ConcurrentHashMap<String, Channel>();
+    private static Map<String, Thread> lightThreadMap = new ConcurrentHashMap<String, Thread>();
 
     protected static void run()
     throws Exception
@@ -92,6 +93,14 @@ public class TcpServer
 
     public static void setServermap(Map<String, Channel> map) {
         TcpServer.servermap = map;
+    }
+
+    public static Map<String, Thread> getLightThreadMap() {
+        return lightThreadMap;
+    }
+
+    public static void setLightThreadMap(Map<String, Thread> map) {
+        TcpServer.lightThreadMap = map;
     }
 
 }
